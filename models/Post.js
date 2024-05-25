@@ -8,10 +8,10 @@ const PostSchema = new mongoose.Schema({
   comments: [
     {
       type: {
+        username: { type: String, required: true },
         title: { type: String, required: true },
         content: { type: String, required: true },
       },
-      required: true,
     },
   ],
 });
