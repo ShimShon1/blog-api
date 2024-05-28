@@ -5,6 +5,7 @@ const PostSchema = new mongoose.Schema({
   content: { type: String, required: true },
   date: { type: Date, required: true },
   isPublic: { type: Boolean, required: true },
+  views: { type: Number, required: true, default: 0 },
   comments: [
     {
       type: {
