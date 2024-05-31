@@ -6,7 +6,23 @@ const router = require("express").Router();
 
 router.get("/posts", async function (req, res) {
   try {
-    const posts = await Post.find({ isPublic: true });
+    const posts = await Post.aggregate([
+      {
+        $match: {
+          isPublic: true,
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          content: 1,
+          views: 1,
+          comments_count: { $size: "$comments" },
+        },
+      },
+    ]);
+
+    console.log(posts);
     if (!posts) {
       return res
         .status(404)
@@ -65,8 +81,9 @@ router.post(
 //MOCK
 router.post("/posts/mock", async function (req, res, next) {
   const post = await Post.create({
-    title: "aaaa",
-    content: "aaaa",
+    title: "that's a title",
+    content:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
     isPublic: true,
     date: new Date(),
   });
