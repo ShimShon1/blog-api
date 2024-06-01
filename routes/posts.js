@@ -1,10 +1,13 @@
 const { body, validationResult } = require("express-validator");
 const Post = require("../models/Post");
-const { commentValidation } = require("../validators");
+const {
+  commentValidation,
+  postValidation,
+} = require("../validators");
 
 const router = require("express").Router();
 
-router.get("/posts", async function (req, res) {
+router.get("/", async function (req, res) {
   try {
     const posts = await Post.aggregate([
       {
@@ -17,12 +20,12 @@ router.get("/posts", async function (req, res) {
           title: 1,
           content: 1,
           views: 1,
+          date: 1,
           comments_count: { $size: "$comments" },
         },
       },
     ]);
 
-    console.log(posts);
     if (!posts) {
       return res
         .status(404)
@@ -34,7 +37,7 @@ router.get("/posts", async function (req, res) {
   }
 });
 
-router.get("/posts/:postId", async function (req, res) {
+router.get("/:postId", async function (req, res) {
   try {
     const post = await Post.findById(req.params.postId);
     if (!post) {
@@ -51,7 +54,7 @@ router.get("/posts/:postId", async function (req, res) {
 });
 
 router.post(
-  "/posts/:postId/comments",
+  "/:postId/comments",
   commentValidation,
   async function (req, res, next) {
     const errors = validationResult(req);
@@ -78,8 +81,74 @@ router.post(
   }
 );
 
+//author routes
+// POST a post
+router.post("/", postValidation, async function (req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  try {
+    const newPost = new Post({
+      title: req.body.title,
+      content: req.body.content,
+      isPublic: req.body.isPublic,
+      date: new Date(),
+    });
+    await newPost.save();
+    return res.json({ post: newPost });
+  } catch (error) {
+    res.status(500).json({ errors: [{ msg: "Server error" }] });
+  }
+});
+
+// PUT a post
+router.put(
+  "/:postId",
+  postValidation,
+  async function (req, res, next) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const post = await Post.findById(req.params.postId);
+      post.title = req.body.title;
+      post.content = req.body.content;
+      post.isPublic = req.body.isPublic;
+      await post.save();
+      return res.json({ post });
+    } catch (error) {
+      res.status(500).json({ errors: [{ msg: "Server error" }] });
+    }
+  }
+);
+// DELETE a post
+router.delete("/:postId", async function (req, res, next) {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      return res
+        .status(404)
+        .json({ errors: [{ msg: "Post not found" }] });
+    }
+
+    await post.deleteOne();
+    return res.json({ msg: "Post deleted" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ errors: [{ msg: "Server error" }] });
+  }
+});
+// DELETE a comment
+
+//auth
+//register?? (prob not)
+//login
+
 //MOCK
-router.post("/posts/mock", async function (req, res, next) {
+router.post("/mock", async function (req, res, next) {
   const post = await Post.create({
     title: "that's a title",
     content:

@@ -17,9 +17,18 @@ const userValidation = body("username")
   .isLength(2)
   .withMessage("username must have at least 2 characters");
 
+const isPublicValidation = body("isPublic")
+  .isBoolean()
+  .withMessage("isPublic must be a Boolean");
+
 //validate comment model
 exports.commentValidation = [
   userValidation,
+  titleValidation,
+  contentValidation,
+];
+exports.postValidation = [
+  isPublicValidation,
   titleValidation,
   contentValidation,
 ];

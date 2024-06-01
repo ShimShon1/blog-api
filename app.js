@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const indexRouter = require("./routes/index");
+const PostsRouter = require("./routes/posts");
 const User = require("./models/User");
 const Post = require("./models/Post");
 const cors = require("cors");
@@ -12,6 +12,6 @@ mongoose.connect(process.env.DB_LINK);
 app.use(express.json());
 app.use(cors());
 
-app.use("/api", indexRouter);
+app.use("/api/posts", PostsRouter);
 
 app.listen(process.env.PORT || 3000);
