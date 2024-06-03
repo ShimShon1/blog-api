@@ -17,6 +17,12 @@ const userValidation = body("username")
   .isLength(2)
   .withMessage("username must have at least 2 characters");
 
+const passwordValidation = body("password")
+  .isString()
+  .trim()
+  .isLength(3)
+  .withMessage("password must have at least 3 characters");
+
 const isPublicValidation = body("isPublic")
   .isBoolean()
   .withMessage("isPublic must be a Boolean");
@@ -32,3 +38,5 @@ exports.postValidation = [
   titleValidation,
   contentValidation,
 ];
+
+exports.loginValidation = [userValidation, passwordValidation];
