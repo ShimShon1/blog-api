@@ -30,6 +30,10 @@ app.use("/api/posts", PostsRouter);
 app.use("/api", IndexRouter);
 
 app.use(verifyUser);
+app.get("/api/isLogged", (req, res) => {
+  console.log("logged");
+  return res.json({ logged: true });
+});
 app.use("/api/protected/posts", ProtectedPostsRouter, verifyUser);
 
 app.listen(process.env.PORT || 3000);
