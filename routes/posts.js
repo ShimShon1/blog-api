@@ -24,6 +24,11 @@ router.get("/", async function (req, res) {
           comments_count: { $size: "$comments" },
         },
       },
+      {
+        $sort: {
+          date: -1,
+        },
+      },
     ]);
 
     if (!posts) {
@@ -72,6 +77,7 @@ router.post(
         username: req.body.username,
         title: req.body.title,
         content: req.body.content,
+        date: new Date(),
       });
       await post.save();
       return res.json({ comments: post.comments });
@@ -144,7 +150,6 @@ router.delete("/:postId", async function (req, res, next) {
 // DELETE a comment
 
 //auth
-//register?? (prob not)
 //login
 
 //MOCK

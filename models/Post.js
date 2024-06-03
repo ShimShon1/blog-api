@@ -12,6 +12,7 @@ const PostSchema = new mongoose.Schema({
         username: { type: String, required: true, minlength: 2 },
         title: { type: String, required: true, minlength: 2 },
         content: { type: String, required: true, minlength: 2 },
+        date: { type: Date, required: true },
       },
     },
   ],
