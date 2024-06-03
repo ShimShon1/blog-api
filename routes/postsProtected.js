@@ -1,17 +1,14 @@
 const { body, validationResult } = require("express-validator");
 const Post = require("../models/Post");
-const { commentValidation } = require("../validators");
-
+const {
+  commentValidation,
+  postValidation,
+} = require("../validators");
 const router = require("express").Router();
 
 router.get("/", async function (req, res) {
   try {
     const posts = await Post.aggregate([
-      {
-        $match: {
-          isPublic: true,
-        },
-      },
       {
         $project: {
           title: 1,
@@ -41,10 +38,7 @@ router.get("/", async function (req, res) {
 
 router.get("/:postId", async function (req, res) {
   try {
-    const post = await Post.findOne({
-      _id: req.params.postId,
-      isPublic: true,
-    });
+    const post = await Post.findById(req.params.postId);
     if (!post) {
       return res
         .status(404)
@@ -58,9 +52,30 @@ router.get("/:postId", async function (req, res) {
   }
 });
 
-router.post(
-  "/:postId/comments",
-  commentValidation,
+// POST a post
+router.post("/", postValidation, async function (req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+  try {
+    const newPost = new Post({
+      title: req.body.title,
+      content: req.body.content,
+      isPublic: req.body.isPublic,
+      date: new Date(),
+    });
+    await newPost.save();
+    return res.json({ post: newPost });
+  } catch (error) {
+    res.status(500).json({ errors: [{ msg: "Server error" }] });
+  }
+});
+
+// PUT a post
+router.put(
+  "/:postId",
+  postValidation,
   async function (req, res, next) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -68,23 +83,33 @@ router.post(
     }
     try {
       const post = await Post.findById(req.params.postId);
-      if (!post) {
-        return res
-          .status(404)
-          .json({ errors: [{ msg: "Post not found" }] });
-      }
-      post.comments.push({
-        username: req.body.username,
-        title: req.body.title,
-        content: req.body.content,
-        date: new Date(),
-      });
+      post.title = req.body.title;
+      post.content = req.body.content;
+      post.isPublic = req.body.isPublic;
       await post.save();
-      return res.json({ comments: post.comments });
+      return res.json({ post });
     } catch (error) {
       res.status(500).json({ errors: [{ msg: "Server error" }] });
     }
   }
 );
+// DELETE a post
+router.delete("/:postId", async function (req, res, next) {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      return res
+        .status(404)
+        .json({ errors: [{ msg: "Post not found" }] });
+    }
+
+    await post.deleteOne();
+    return res.json({ msg: "Post deleted" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ errors: [{ msg: "Server error" }] });
+  }
+});
 
 module.exports = router;
