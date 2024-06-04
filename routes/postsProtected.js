@@ -16,6 +16,7 @@ router.get("/", async function (req, res) {
           views: 1,
           date: 1,
           comments_count: { $size: "$comments" },
+          isPublic: 1,
         },
       },
       {
