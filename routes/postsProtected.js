@@ -113,4 +113,19 @@ router.delete("/:postId", async function (req, res, next) {
   }
 });
 
+router.delete("/:postId/:commentId", async function (req, res, next) {
+  try {
+    const post = await Post.findById(req.params.postId);
+    post.comments = post.comments.filter(
+      (comment) => comment._id != req.params.commentId
+    );
+    await post.save();
+    return res.json({ comments: post.comments });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ errors: [{ msg: "Server error" }] });
+  }
+});
+
 module.exports = router;
