@@ -26,19 +26,24 @@ router.get("/", async function (req, res) {
       },
     ]);
 
-    if (!posts) {
+    if (!posts.length) {
       return res
         .status(404)
         .json({ errors: [{ msg: "Couldn't find posts" }] });
     }
-    res.json({ posts });
+    res.status(200).json({ posts });
   } catch (error) {
-    res.status(500).json({ errors: [{ msg: "Server error" }] });
+    res.status(500).json({ errors: [{ msg: "Unexpected Error" }] });
   }
 });
 
 router.get("/:postId", async function (req, res) {
   try {
+    if (req.params.postId.length !== 24) {
+      return res
+        .status(404)
+        .json({ errors: [{ msg: "Post Not Found" }] });
+    }
     const post = await Post.findById(req.params.postId);
     if (!post) {
       return res
@@ -49,7 +54,7 @@ router.get("/:postId", async function (req, res) {
     await post.save();
     res.json({ post });
   } catch (error) {
-    res.status(500).json({ errors: [{ msg: "Server error" }] });
+    res.status(500).json({ errors: [{ msg: "Unexpected Error" }] });
   }
 });
 
@@ -67,9 +72,9 @@ router.post("/", postValidation, async function (req, res, next) {
       date: new Date(),
     });
     await newPost.save();
-    return res.json({ post: newPost });
+    return res.status(201).json({ post: newPost });
   } catch (error) {
-    res.status(500).json({ errors: [{ msg: "Server error" }] });
+    res.status(500).json({ errors: [{ msg: "Unexpected Error" }] });
   }
 });
 
@@ -90,7 +95,7 @@ router.put(
       await post.save();
       return res.json({ post });
     } catch (error) {
-      res.status(500).json({ errors: [{ msg: "Server error" }] });
+      res.status(500).json({ errors: [{ msg: "Unexpected Error" }] });
     }
   }
 );
@@ -105,7 +110,7 @@ router.delete("/:postId", async function (req, res, next) {
     }
 
     await post.deleteOne();
-    return res.json({ msg: "Post deleted" });
+    return res.status(200).json({ msg: "Post deleted" });
   } catch (error) {
     return res
       .status(500)
@@ -120,7 +125,10 @@ router.delete("/:postId/:commentId", async function (req, res, next) {
       (comment) => comment._id != req.params.commentId
     );
     await post.save();
-    return res.json({ comments: post.comments });
+    return res.status(200).json({
+      msg: "Comment deleted",
+      comments: post.comments,
+    });
   } catch (error) {
     return res
       .status(500)

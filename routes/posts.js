@@ -28,7 +28,7 @@ router.get("/", async function (req, res) {
       },
     ]);
 
-    if (!posts) {
+    if (posts.length === 0) {
       return res
         .status(404)
         .json({ errors: [{ msg: "Couldn't find posts" }] });
@@ -41,6 +41,11 @@ router.get("/", async function (req, res) {
 
 router.get("/:postId", async function (req, res) {
   try {
+    if (req.params.postId.length !== 24) {
+      return res
+        .status(404)
+        .json({ errors: [{ msg: "Post Not Found" }] });
+    }
     const post = await Post.findOne({
       _id: req.params.postId,
       isPublic: true,
@@ -52,8 +57,9 @@ router.get("/:postId", async function (req, res) {
     }
     post.views = post.views + 1;
     await post.save();
-    res.json({ post });
+    return res.status(200).json({ post });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ errors: [{ msg: "Server error" }] });
   }
 });
@@ -80,7 +86,7 @@ router.post(
         date: new Date(),
       });
       await post.save();
-      return res.json({ comments: post.comments });
+      return res.status(201).json({ comments: post.comments });
     } catch (error) {
       res.status(500).json({ errors: [{ msg: "Server error" }] });
     }
